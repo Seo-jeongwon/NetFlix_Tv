@@ -16,7 +16,10 @@
             font-family: 'Noto Sans KR', Arial, sans-serif;
             color: #fff;
             user-select: none;
+            overflow: hidden;
         }
+        
+        /* TV 컨테이너 바깥으로 절대 요소들이 빠져나가지 않도록 absolute 전면 수정 */
         .tv {
             width: 1280px;
             height: 720px;
@@ -24,10 +27,11 @@
             position: relative;
             overflow: hidden;
             box-shadow: 0 25px 70px rgba(0,0,0,0.9);
+            box-sizing: border-box;
         }
 
         /* ════ 공통 ════ */
-        .page { display: none; width: 100%; height: 100%; box-sizing: border-box; }
+        .page { display: none; width: 100%; height: 100%; box-sizing: border-box; position: absolute; inset: 0; }
         .active { display: block; }
 
         /* ════════════════════════════════
@@ -198,7 +202,7 @@
             border-radius: 50%; z-index: 1;
         }
 
-        /* ── [정렬 대폭 업그레이드] 상단 바 레이아웃 ── */
+        /* 상단 바 레이아웃 */
         .home-topbar {
             position: absolute; top: 0; left: 0; right: 0; height: 76px;
             background: linear-gradient(180deg, rgba(0,0,0,0.8) 0%, transparent 100%);
@@ -208,7 +212,7 @@
             z-index: 50;
         }
 
-        /* [좌측 절대 배치 고정] 프로필 */
+        /* [좌측 고정] 프로필 존 */
         .topbar-left-zone {
             position: absolute;
             left: 55px;
@@ -228,9 +232,9 @@
         .home-profile-arrow { font-size: 10px; color: #bbb; margin-left: 2px; transition: transform 0.2s; }
         .home-profile-btn.open .home-profile-arrow { transform: rotate(180deg); }
 
-        /* [★핵심 기능] 전체 화면 기준 100% 한가운데로 정렬을 강제 제어 */
+        /* [중앙 고정] 메뉴들 */
         .topbar-center-zone {
-            margin: 0 auto;             /* Flex 영역 좌우 마진 자동 계산 -> 정중앙 배치 */
+            margin: 0 auto;
             display: flex;
             align-items: center;
             gap: 15px;
@@ -265,7 +269,7 @@
         .home-nav .nav-item:hover { background: rgba(255,255,255,0.08); color: #fff; }
         .home-nav .nav-item.active-nav { color: #ffffff; font-weight: 700; background: rgba(93,68,164,0.25); border: 1px solid rgba(131,103,215,0.2); }
 
-        /* [우측 절대 배치 고정] 넷플릭스 로고 단독 마크 */
+        /* [우측 고정] 브랜드 로고 마크 */
         .topbar-right-zone {
             position: absolute;
             right: 55px;
@@ -273,13 +277,20 @@
             align-items: center;
         }
 
-        /* 드롭다운 메뉴 위치 보정 */
+        /* 프로필 드롭다운 메뉴 스타일 업데이트 */
         .home-menu {
-            display: none; position: absolute; top: 76px; left: 55px;
-            background: rgba(13,9,30,0.98); width: 240px;
-            height: auto;
-            border-radius: 12px; box-shadow: 0 15px 40px rgba(0,0,0,0.85);
-            z-index: 200; border: 1px solid rgba(255,255,255,0.08); overflow: hidden;
+            display: none; 
+            position: absolute; 
+            top: 76px; 
+            left: 55px;
+            background: rgba(13,9,30,0.98); 
+            width: 240px;
+            height: auto; /* 내용 높이에 맞춤 */
+            border-radius: 12px; 
+            box-shadow: 0 15px 40px rgba(0,0,0,0.85);
+            z-index: 200; 
+            border: 1px solid rgba(255,255,255,0.08); 
+            overflow: hidden;
         }
         .home-menu-nick {
             display: flex; align-items: center; gap: 12px; padding: 16px;
@@ -288,6 +299,7 @@
         .home-menu-nick .nick-emoji { font-size: 28px; }
         .home-menu-nick .nick-text { font-size: 16px; font-weight: 700; color: #fff; }
         .home-menu-nick .nick-sub { font-size: 12px; color: #8a85a3; margin-top: 2px; }
+        
         .home-menu-item {
             padding: 14px 16px; cursor: pointer; font-size: 14px; color: #ccc;
             border-bottom: 1px solid rgba(255,255,255,0.04);
@@ -296,8 +308,8 @@
         .home-menu-item:last-child { border-bottom: none; }
         .home-menu-item:hover { background: rgba(93,68,164,0.3); color: #fff; padding-left: 20px; }
 
-        /* 메인 히어로 타이틀 구역 */
-        .movie-hero-section { position: absolute; left: 55px; top: 125px; max-width: 620px; z-index: 10; }
+        /* 메인 콘텐츠 구역 레이아웃 고정 (포지션 꼬임 방지) */
+        .movie-hero-section { position: absolute; left: 55px; top: 160px; max-width: 620px; z-index: 10; }
         .movie-badge {
             display: inline-block; background: #E50914; color: #fff;
             font-size: 11px; font-weight: 800; padding: 4px 11px;
@@ -313,7 +325,7 @@
         .cta-info { background: rgba(255,255,255,0.15); color: #fff; padding: 14px 36px; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 16px; border: 1px solid rgba(255,255,255,0.08); transition: background 0.15s; }
         .cta-info:hover { background: rgba(255,255,255,0.25); }
 
-        /* 하단 영화 리스트 스트립 */
+        /* 하단 썸네일 컨테이너 */
         .content-row { position: absolute; bottom: 40px; left: 55px; right: 55px; z-index: 10; }
         .content-row-title { font-size: 15px; font-weight: 700; color: #e1def0; margin-bottom: 12px; letter-spacing: -0.2px; }
         .thumbnail-strip { display: flex; gap: 12px; }
@@ -439,7 +451,7 @@
                 </div>
             </div>
             <div class="form-side">
-                <input class="tv-input-display" placeholder="이메일 주소" value="testemail@naver.com" id="tv-email" onclick="setFocusTarget('email')" readonly>
+                <input class="tv-input-display" placeholder="이메일 주소" value="kukikuki12@naver.com" id="tv-email" onclick="setFocusTarget('email')" readonly>
                 <input class="tv-input-display" placeholder="비밀번호" type="password" value="" id="tv-pw" onclick="setFocusTarget('password')" readonly>
                 <div class="side-guide-box">
                     <span>계정이 없으신가요?</span>
@@ -458,7 +470,6 @@
             <div class="movie-hero-glow"></div>
 
             <div class="home-topbar">
-                
                 <div class="topbar-left-zone">
                     <div class="home-profile-btn" id="profileBtn" onclick="toggleHomeMenu()">
                         <span class="home-profile-emoji">🙂</span>
@@ -500,6 +511,7 @@
                 </div>
                 <div class="home-menu-item" onclick="go('support')">
                     <span class="menu-icon">🎧</span> 고객지원
+                </div>
                 <div class="home-menu-item" onclick="alert('이용가구 관리 화면으로 이동합니다.')">
                     <span class="menu-icon">🏠</span> 이용가구관리
                 </div>
