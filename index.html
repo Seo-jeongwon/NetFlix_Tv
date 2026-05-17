@@ -554,7 +554,7 @@
         <div class="supportMenu">
             <h1>고객 지원</h1>
             <div class="supportMenu-list">
-                <div onclick="info('회원 정보','프로필 이름 : 홍길동<br><br>계정 이메일 : testemail@naver.com<br><br>국가 / 언어 : KR / ko')">회원</div>
+                <div onclick="info('회원 정보','프로필 이름 : 홍길동<br><br>계정 이메일 : ' + userEmail + '<br><br>국가 / 언어 : KR / ko')">회원</div>
                 <div onclick="info('디바이스 사양','LG 스마트 TV 시스템 셋톱<br>모델 사양 : 넷플릭스 공식 호환 장치 인증 완료')">디바이스</div>
                 <div onclick="info('네트워크','연결된 홈 인터넷 게이트웨이 : SK_WIFI_5G')">네트워크</div>
                 <div onclick="info('멤버십 호환성','광고형 및 스탠다드, 프리미엄 멤버십 비디오 재생 규격 호환')">멤버십 호환성</div>
@@ -587,6 +587,7 @@
     let h = ['login'];
     let isUpperCase = false;
     let currentFocus = 'email';
+    let userEmail = '';
 
     const homeMenu    = document.getElementById('home-menu');
     const profileBtn  = document.getElementById('profileBtn');
@@ -707,7 +708,13 @@
     }
     function handleNavNext() {
         if (currentFocus === 'email') setFocusTarget('password');
-        else go('home');
+        else {
+        userEmail = emailInput.value;
+            
+        updateUserEmailDisplay();
+        
+        go('home');
+        }
     }
 
     function pressKey(key) {
@@ -725,6 +732,15 @@
                 btn.textContent = isUpperCase ? t.toUpperCase() : t.toLowerCase();
         });
     }
+    function updateUserEmailDisplay() {
+    const nickSub = document.querySelector('.home-menu-nick .nick-sub');
+    if (nickSub) {
+        nickSub.textContent = userEmail;
+    }
+    
+    // 2. 고객지원 페이지의 회원 정보 텍스트 내용 업데이트 준비
+    // (이 부분은 아래 2번 항목에서 HTML을 수정하면 연동됩니다.)
+}
 </script>
 </body>
 </html>
