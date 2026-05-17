@@ -1,0 +1,717 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Netflix TV Real Screen Sync</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap');
+
+        body {
+            margin: 0;
+            background: #0b071e;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            font-family: 'Noto Sans KR', Arial, sans-serif;
+            color: #fff;
+            user-select: none;
+        }
+        .tv {
+            width: 1280px;
+            height: 720px;
+            background: linear-gradient(135deg, #140e34 0%, #060413 100%);
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 25px 70px rgba(0,0,0,0.9);
+        }
+
+        /* ════ 공통 ════ */
+        .page { display: none; width: 100%; height: 100%; box-sizing: border-box; }
+        .active { display: block; }
+
+        /* ════════════════════════════════
+           넷플릭스 시그니처 시네마틱 로고
+        ════════════════════════════════ */
+        .netflix-logo-brand {
+            color: #E50914;
+            font-size: 36px;
+            font-weight: 900;
+            letter-spacing: -1.5px;
+            text-shadow: 0 4px 10px rgba(0, 0, 0, 0.7);
+            display: inline-block;
+            font-family: 'Arial Black', Impact, sans-serif;
+            transform: perspective(300px) scaleY(1.1) scaleX(0.95);
+            transform-origin: center;
+        }
+
+        /* ════════════════════════════════
+           로그인 페이지
+        ════════════════════════════════ */
+        .login-logo-pos {
+            position: absolute;
+            top: 32px; right: 50px;
+            z-index: 10;
+        }
+        .login-header-title {
+            text-align: center;
+            font-size: 28px; font-weight: 700;
+            margin-top: 55px; color: #ffffff; letter-spacing: -0.5px;
+        }
+        .tab-bar { text-align: center; margin-top: 20px; margin-bottom: 35px; }
+        .tab-bar span {
+            padding: 11px 28px;
+            font-size: 15px; font-weight: 500;
+            color: #aaa; cursor: pointer; border-radius: 30px;
+            transition: all 0.2s ease; margin: 0 8px;
+            border: 1px solid transparent;
+        }
+        .tab-bar span.active-tab {
+            background: #ffffff !important;
+            color: #000000 !important;
+            font-weight: 700;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+        .tab-bar span.inactive-tab:hover {
+            border-color: rgba(255,255,255,0.4);
+            color: #fff;
+        }
+
+        /* QR 섹션 */
+        .qr-section {
+            display: flex;
+            justify-content: center; align-items: center;
+            gap: 80px; padding: 0 80px; margin-top: 10px;
+        }
+        .qr-card-container { display: flex; align-items: flex-start; gap: 22px; }
+        .step-num {
+            background: #5d44a4;
+            color: #fff; width: 30px; height: 30px;
+            border-radius: 50%; display: flex; align-items: center;
+            justify-content: center; font-weight: bold; font-size: 15px; margin-top: 2px;
+        }
+        .qr-visual-box {
+            width: 190px;
+            height: 190px; background: #fff; border-radius: 12px;
+            padding: 12px; box-sizing: border-box; display: flex;
+            align-items: center; justify-content: center;
+            font-size: 24px; font-weight: 900; color: #000;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+        }
+        .qr-info-desc h3 { margin: 0 0 14px 0; font-size: 16px; font-weight: 400; color: #d0cce0; line-height: 1.6; }
+        .activation-code { font-size: 56px; font-weight: 800; color: #fff; letter-spacing: 3px; margin-top: 10px; text-shadow: 0 4px 12px rgba(0,0,0,0.5); }
+
+        /* 리모컨 섹션 */
+        .remote-section {
+            display: flex;
+            justify-content: center;
+            gap: 45px; padding: 0 50px; margin-top: 5px;
+        }
+        .keyboard-side { width: 540px; }
+        .keyboard-header-desc { font-size: 15px; color: #b6b2cf; margin-bottom: 12px; font-weight: 500; }
+
+        .netflix-tv-keyboard {
+            display: grid;
+            grid-template-columns: repeat(11, 1fr);
+            gap: 6px; margin-bottom: 8px;
+        }
+        .netflix-tv-keyboard button {
+            background: rgba(255,255,255,0.09);
+            border: 1px solid rgba(255,255,255,0.05); color: #fff;
+            padding: 12px 0; border-radius: 8px; font-size: 16px; font-weight: 700;
+            cursor: pointer; transition: all 0.1s;
+        }
+        .netflix-tv-keyboard button:hover,
+        .netflix-tv-keyboard button:focus { background: #5d44a4; border-color: #8367d7; outline: none; transform: scale(1.05); }
+
+        .keyboard-extended-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 6px; margin-bottom: 8px;
+        }
+        .keyboard-extended-row button {
+            background: rgba(255,255,255,0.12);
+            border: none; color: #e1def0;
+            padding: 12px 0; border-radius: 8px; font-size: 14px; font-weight: 500;
+            cursor: pointer; transition: all 0.1s;
+        }
+        .keyboard-extended-row button:hover,
+        .keyboard-extended-row button:focus { background: #5d44a4; color: #fff; outline: none; }
+
+        .keyboard-footer-control { display: grid; grid-template-columns: 1fr 2fr; gap: 8px; }
+        .keyboard-footer-control button {
+            padding: 14px; border-radius: 8px; border: none;
+            font-size: 16px; font-weight: 700; cursor: pointer; transition: background 0.15s;
+        }
+
+        .keyboard-sub-info {
+            margin-top: 14px; display: flex; align-items: center;
+            justify-content: space-between; padding: 0 4px;
+        }
+        .save-id-wrap { display: flex; align-items: center; gap: 8px; font-size: 14px; color: #aaa; }
+        .save-id-wrap input[type="checkbox"] { width: 16px; height: 16px; cursor: pointer; }
+        .forgot-pw-link { font-size: 14px; color: #8e6ee3; font-weight: 700; cursor: pointer; }
+        .forgot-pw-link:hover { color: #bca6ff; }
+
+        /* 입력 창 우측 */
+        .form-side { width: 380px; display: flex; flex-direction: column; justify-content: flex-start; padding-top: 28px; }
+        .tv-input-display {
+            width: 100%; padding: 16px;
+            background: rgba(255,255,255,0.06);
+            border: 1.5px solid rgba(255,255,255,0.12);
+            color: #fff; font-size: 16px; border-radius: 8px;
+            box-sizing: border-box; outline: none; margin-bottom: 14px;
+            font-weight: 500;
+        }
+        .tv-input-display:focus { background: rgba(255,255,255,0.12); border-color: #8367d7; box-shadow: 0 0 10px rgba(131,103,215,0.3); }
+
+        .side-guide-box { margin-top: auto; text-align: right; padding-bottom: 10px; }
+        .side-guide-box span { font-size: 14px; color: #aaa; display: block; margin-bottom: 10px; }
+        .join-now-btn {
+            display: inline-block; background: rgba(255,255,255,0.12);
+            padding: 11px 24px; border-radius: 8px; font-size: 14px;
+            font-weight: 700; cursor: pointer; border: 1px solid rgba(255,255,255,0.1);
+            transition: all 0.2s;
+        }
+        .join-now-btn:hover { background: rgba(255,255,255,0.22); border-color: rgba(255,255,255,0.3); }
+
+        .screen-footer-notice {
+            position: absolute; bottom: 24px; right: 50px;
+            font-size: 12px; color: #777; text-align: right; line-height: 1.6;
+        }
+
+        /* ════════════════════════════════
+           홈 화면
+        ════════════════════════════════ */
+        .home-container { padding: 0; height: 100%; box-sizing: border-box; position: relative; }
+        .movie-hero-bg {
+            position: absolute; inset: 0;
+            background:
+                linear-gradient(90deg, rgba(6,4,19,0.92) 35%, rgba(6,4,19,0.2) 70%, transparent 100%),
+                linear-gradient(180deg, transparent 40%, rgba(6,4,19,0.95) 95%),
+                linear-gradient(135deg, #1b0e3d 0%, #081129 50%, #050512 100%);
+            z-index: 0;
+        }
+        .movie-hero-glow {
+            position: absolute; top: 60px; right: 80px; width: 550px; height: 400px;
+            background: radial-gradient(ellipse, rgba(100,50,210,0.22) 0%, transparent 75%);
+            border-radius: 50%; z-index: 1;
+        }
+
+        /* ── [정렬 대폭 업그레이드] 상단 바 레이아웃 ── */
+        .home-topbar {
+            position: absolute; top: 0; left: 0; right: 0; height: 76px;
+            background: linear-gradient(180deg, rgba(0,0,0,0.8) 0%, transparent 100%);
+            display: flex; 
+            align-items: center; 
+            padding: 0 55px; 
+            z-index: 50;
+        }
+
+        /* [좌측 절대 배치 고정] 프로필 */
+        .topbar-left-zone {
+            position: absolute;
+            left: 55px;
+            display: flex;
+            align-items: center;
+        }
+        .home-profile-btn {
+            display: flex; align-items: center; gap: 8px;
+            background: rgba(255,255,255,0.06);
+            border: 1.5px solid rgba(255,255,255,0.12);
+            border-radius: 8px; padding: 6px 12px; cursor: pointer;
+            transition: all 0.15s;
+        }
+        .home-profile-btn:hover { background: rgba(93,68,164,0.3); border-color: #8367d7; }
+        .home-profile-emoji { font-size: 20px; }
+        .home-profile-name { font-size: 14px; font-weight: 700; color: #f0f0f0; }
+        .home-profile-arrow { font-size: 10px; color: #bbb; margin-left: 2px; transition: transform 0.2s; }
+        .home-profile-btn.open .home-profile-arrow { transform: rotate(180deg); }
+
+        /* [★핵심 기능] 전체 화면 기준 100% 한가운데로 정렬을 강제 제어 */
+        .topbar-center-zone {
+            margin: 0 auto;             /* Flex 영역 좌우 마진 자동 계산 -> 정중앙 배치 */
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .home-search-wrap { display: flex; align-items: center; gap: 8px; }
+        .search-btn {
+            width: 38px; height: 38px; border-radius: 50%;
+            background: rgba(255,255,255,0.06); border: 1.5px solid rgba(255,255,255,0.15);
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer; font-size: 15px; transition: all 0.15s; flex-shrink: 0;
+        }
+        .search-btn:hover { background: rgba(255,255,255,0.15); border-color: rgba(255,255,255,0.4); }
+        
+        .search-input-wrap {
+            display: none; align-items: center;
+            background: rgba(5,3,13,0.85); border: 1.5px solid rgba(131,103,215,0.5);
+            border-radius: 8px; overflow: hidden; box-shadow: 0 0 15px rgba(131,103,215,0.2);
+        }
+        .search-input-wrap.open { display: flex; width: 180px; animation: fadeInWidth 0.2s ease; }
+        .search-input-wrap input {
+            background: transparent; border: none; color: #fff;
+            padding: 9px 12px; font-size: 14px; outline: none; width: 100%; font-family: inherit;
+        }
+        .search-close-btn { padding: 0 12px; cursor: pointer; color: #aaa; font-size: 14px; }
+        .search-close-btn:hover { color: #fff; }
+
+        .home-nav { display: flex; align-items: center; gap: 6px; }
+        .home-nav .nav-item {
+            padding: 8px 16px; font-size: 15px; color: #b6b2cf; cursor: pointer;
+            border-radius: 8px; transition: all 0.15s; white-space: nowrap; font-weight: 500;
+        }
+        .home-nav .nav-item:hover { background: rgba(255,255,255,0.08); color: #fff; }
+        .home-nav .nav-item.active-nav { color: #ffffff; font-weight: 700; background: rgba(93,68,164,0.25); border: 1px solid rgba(131,103,215,0.2); }
+
+        /* [우측 절대 배치 고정] 넷플릭스 로고 단독 마크 */
+        .topbar-right-zone {
+            position: absolute;
+            right: 55px;
+            display: flex;
+            align-items: center;
+        }
+
+        /* 드롭다운 메뉴 위치 보정 */
+        .home-menu {
+            display: none; position: absolute; top: 76px; left: 55px;
+            background: rgba(13,9,30,0.98); width: 240px;
+            border-radius: 12px; box-shadow: 0 15px 40px rgba(0,0,0,0.85);
+            z-index: 200; border: 1px solid rgba(255,255,255,0.08); overflow: hidden;
+        }
+        .home-menu-nick {
+            display: flex; align-items: center; gap: 12px; padding: 16px;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+        }
+        .home-menu-nick .nick-emoji { font-size: 28px; }
+        .home-menu-nick .nick-text { font-size: 16px; font-weight: 700; color: #fff; }
+        .home-menu-nick .nick-sub { font-size: 12px; color: #8a85a3; margin-top: 2px; }
+        .home-menu-item {
+            padding: 14px 16px; cursor: pointer; font-size: 14px; color: #ccc;
+            border-bottom: 1px solid rgba(255,255,255,0.04);
+            display: flex; align-items: center; gap: 10px; transition: all 0.15s;
+        }
+        .home-menu-item:last-child { border-bottom: none; }
+        .home-menu-item:hover { background: rgba(93,68,164,0.3); color: #fff; padding-left: 20px; }
+
+        /* 메인 히어로 타이틀 구역 */
+        .movie-hero-section { position: absolute; left: 55px; top: 125px; max-width: 620px; z-index: 10; }
+        .movie-badge {
+            display: inline-block; background: #E50914; color: #fff;
+            font-size: 11px; font-weight: 800; padding: 4px 11px;
+            border-radius: 4px; letter-spacing: 1px; margin-bottom: 16px;
+            box-shadow: 0 2px 6px rgba(229,9,20,0.4);
+        }
+        .movie-hero-section h1 { font-size: 62px; font-weight: 900; margin: 0 0 16px 0; line-height: 1.1; letter-spacing: -1px; text-shadow: 0 4px 15px rgba(0,0,0,0.6); }
+        .movie-meta { font-size: 14px; color: #b6b2cf; margin-bottom: 18px; display: flex; gap: 16px; align-items: center; }
+        .movie-desc { font-size: 15px; line-height: 1.75; color: #d0cce0; margin-bottom: 28px; font-weight: 400; text-shadow: 0 2px 8px rgba(0,0,0,0.5); }
+        .cta-btns { display: flex; gap: 14px; }
+        .cta-play { background: #ffffff; color: #000; padding: 14px 36px; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 16px; transition: background 0.15s; box-shadow: 0 4px 15px rgba(255,255,255,0.2); }
+        .cta-play:hover { background: #e2e0ed; }
+        .cta-info { background: rgba(255,255,255,0.15); color: #fff; padding: 14px 36px; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 16px; border: 1px solid rgba(255,255,255,0.08); transition: background 0.15s; }
+        .cta-info:hover { background: rgba(255,255,255,0.25); }
+
+        /* 하단 영화 리스트 스트립 */
+        .content-row { position: absolute; bottom: 40px; left: 55px; right: 55px; z-index: 10; }
+        .content-row-title { font-size: 15px; font-weight: 700; color: #e1def0; margin-bottom: 12px; letter-spacing: -0.2px; }
+        .thumbnail-strip { display: flex; gap: 12px; }
+        .thumb {
+            flex: 1; height: 90px; border-radius: 8px;
+            background: linear-gradient(180deg, rgba(255,255,255,0.07) 0%, rgba(255,255,255,0.03) 100%);
+            border: 1px solid rgba(255,255,255,0.08);
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer; flex-direction: column; gap: 5px;
+            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
+        .thumb:hover { 
+            transform: translateY(-5px) scale(1.03); 
+            border-color: #ffffff; 
+            background: rgba(93,68,164,0.25);
+            box-shadow: 0 8px 25px rgba(131,103,215,0.4);
+        }
+        .thumb-emoji { font-size: 24px; }
+        .thumb-label { font-size: 11px; color: #ded9f3; font-weight: 500; text-align: center; padding: 0 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 90%; }
+
+        /* ════ 고객지원 페이지 ════ */
+        .support-back {
+            position: absolute; top: 24px; left: 24px;
+            background: rgba(255,255,255,0.08); padding: 9px 18px; border-radius: 20px;
+            z-index: 99; font-size: 14px; font-weight: 500; border: 1px solid rgba(255,255,255,0.05); cursor: pointer; transition: background 0.2s;
+        }
+        .support-back:hover { background: rgba(255,255,255,0.2); }
+        .support-logo-pos { position: absolute; top: 24px; right: 55px; z-index: 99; }
+        
+        .supportMenu { position: absolute; left: 60px; top: 85px; width: 380px; }
+        .supportMenu > h1 { font-size: 24px; font-weight: 700; margin: 0 0 16px 0; }
+        .supportMenu-list { max-height: 480px; overflow-y: auto; padding-right: 6px; }
+        .supportMenu-list::-webkit-scrollbar { width: 4px; }
+        .supportMenu-list::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 2px; }
+        
+        .supportMenu-list > div {
+            background: rgba(255,255,255,0.04); margin-bottom: 6px; border-radius: 8px;
+            padding: 14px 18px; cursor: pointer; font-size: 14px; color: #c6c2de;
+            border: 1px solid transparent; transition: all 0.15s;
+        }
+        .supportMenu-list > div:hover { background: rgba(93,68,164,0.2); color: #fff; border-color: rgba(131,103,215,0.2); }
+        
+        .panel {
+            position: absolute; left: 490px; top: 85px; width: 730px; height: 520px;
+            background: rgba(10,8,22,0.95); padding: 35px; border-radius: 12px;
+            border: 1px solid rgba(255,255,255,0.08); box-sizing: border-box;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+        .panel h2 { font-size: 22px; font-weight: 700; margin-top: 0; color: #fff; margin-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 12px; }
+        .panel-content { font-size: 16px; line-height: 1.8; color: #b6b2cf; }
+
+        /* ════ 모달 ════ */
+        .modal { display: none; position: absolute; inset: 0; background: rgba(0,0,0,.85); justify-content: center; align-items: center; z-index: 300; }
+        .box { background: #141125; padding: 35px 50px; border-radius: 16px; text-align: center; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 20px 50px rgba(0,0,0,0.7); }
+        .box h2 { font-size: 22px; margin-top: 0; }
+        .btn { display: inline-block; background: rgba(255,255,255,0.1); padding: 12px 32px; margin: 10px; border-radius: 8px; cursor: pointer; font-weight: 700; transition: background 0.15s; }
+        .btn:hover { background: rgba(255,255,255,0.2); }
+
+        @keyframes fadeInWidth {
+            from { width: 0; opacity: 0; }
+            to { width: 180px; opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+<div class="tv">
+
+    <div id="login" class="page active">
+        <div class="login-logo-pos"><div class="netflix-logo-brand">NETFLIX</div></div>
+        <div class="login-header-title">로그인 방법을 선택하세요</div>
+        
+        <div class="tab-bar">
+            <span id="qtab" class="active-tab" onclick="showTab('qr')">스마트폰 사용</span>
+            <span id="ptab" class="inactive-tab" style="background:transparent;" onclick="showTab('phone')">리모컨 사용</span>
+        </div>
+
+        <div id="qrbox" class="qr-section" style="display:flex;">
+            <div class="qr-card-container">
+                <div class="step-num">1</div>
+                <div class="qr-info-desc">
+                    <h3>스마트폰 또는 태블릿의 카메라로 이<br>코드를 비추거나, <strong>netflix.com/tv2</strong><br>페이지로 이동합니다</h3>
+                    <div class="qr-visual-box">QR CODE</div>
+                </div>
+            </div>
+            <div class="qr-card-container">
+                <div class="step-num">2</div>
+                <div class="qr-info-desc">
+                    <h3>스마트폰이나 태블릿에서 이 코드를<br>확인합니다</h3>
+                    <div class="activation-code">9188-2635</div>
+                </div>
+            </div>
+            <div style="display:flex; flex-direction:column; justify-content:flex-end; padding-bottom:10px;">
+                <div style="font-size:14px; color:#aaa; margin-bottom:10px; text-align:right;">계정이 없으신가요?</div>
+                <div class="join-now-btn" onclick="go('home')">지금 가입하기</div>
+            </div>
+        </div>
+
+        <div id="phonebox" class="remote-section" style="display:none;">
+            <div class="keyboard-side">
+                <div class="keyboard-header-desc" id="keyboard-guide">이메일 주소를 입력하세요</div>
+                <div class="netflix-tv-keyboard">
+                    <button onclick="pressKey('1')">1</button><button onclick="pressKey('2')">2</button><button onclick="pressKey('3')">3</button><button onclick="pressKey('4')">4</button><button onclick="pressKey('5')">5</button><button onclick="pressKey('6')">6</button><button onclick="pressKey('7')">7</button><button onclick="pressKey('8')">8</button><button onclick="pressKey('9')">9</button><button onclick="pressKey('0')">0</button><button onclick="pressKey('-')">-</button>
+                    <button onclick="pressKey('q')">q</button><button onclick="pressKey('w')">w</button><button onclick="pressKey('e')">e</button><button onclick="pressKey('r')">r</button><button onclick="pressKey('t')">t</button><button onclick="pressKey('y')">y</button><button onclick="pressKey('u')">u</button><button onclick="pressKey('i')">i</button><button onclick="pressKey('o')">o</button><button onclick="pressKey('p')">p</button><button onclick="pressKey('_')">_</button>
+                    <button onclick="pressKey('a')">a</button><button onclick="pressKey('s')">s</button><button onclick="pressKey('d')">d</button><button onclick="pressKey('f')">f</button><button onclick="pressKey('g')">g</button><button onclick="pressKey('h')">h</button><button onclick="pressKey('j')">j</button><button onclick="pressKey('k')">k</button><button onclick="pressKey('l')">l</button><button onclick="pressKey('/')">/</button><button onclick="pressKey('@')">@</button>
+                    <button onclick="toggleCase()">↑</button><button onclick="pressKey('z')">z</button><button onclick="pressKey('x')">x</button><button onclick="pressKey('c')">c</button><button onclick="pressKey('v')">v</button><button onclick="pressKey('b')">b</button><button onclick="pressKey('n')">n</button><button onclick="pressKey('m')">m</button><button onclick="pressKey('.')">.</button><button onclick="pressKey(',')">,</button><button onclick="pressKey('backspace')">⌫</button>
+                </div>
+                <div class="keyboard-extended-row" id="domain-row">
+                    <button onclick="pressKey('@naver.com')">@naver.com</button>
+                    <button onclick="pressKey('@gmail.com')">@gmail.com</button>
+                    <button onclick="pressKey('@hanmail.net')">@hanmail.net</button>
+                </div>
+                <div class="keyboard-footer-control">
+                    <button id="nav-back-btn" style="background:rgba(255,255,255,0.15); color:#fff;" onclick="handleNavBack()">뒤로</button>
+                    <button id="nav-next-btn" style="background:#5d44a4; color:#fff;" onclick="handleNavNext()">다음</button>
+                </div>
+                <div class="keyboard-sub-info">
+                    <div class="save-id-wrap">
+                        <input type="checkbox" checked id="save-check">
+                        <label for="save-check">이메일 주소 저장</label>
+                    </div>
+                    <div class="forgot-pw-link">비밀번호를 잊으셨나요?</div>
+                </div>
+            </div>
+            <div class="form-side">
+                <input class="tv-input-display" placeholder="이메일 주소" value="kukikuki12@naver.com" id="tv-email" onclick="setFocusTarget('email')" readonly>
+                <input class="tv-input-display" placeholder="비밀번호" type="password" value="" id="tv-pw" onclick="setFocusTarget('password')" readonly>
+                <div class="side-guide-box">
+                    <span>계정이 없으신가요?</span>
+                    <div class="join-now-btn" onclick="go('home')">지금 가입하기</div>
+                </div>
+            </div>
+        </div>
+        <div class="screen-footer-notice">
+            로그인에 문제가 있나요?<br>고객 센터(http://help.netflix.com)로 문의해 주세요
+        </div>
+    </div>
+
+    <div id="home" class="page">
+        <div class="home-container">
+            <div class="movie-hero-bg"></div>
+            <div class="movie-hero-glow"></div>
+
+            <div class="home-topbar">
+                
+                <div class="topbar-left-zone">
+                    <div class="home-profile-btn" id="profileBtn" onclick="toggleHomeMenu()">
+                        <span class="home-profile-emoji">🙂</span>
+                        <span class="home-profile-name">채채</span>
+                        <span class="home-profile-arrow">▼</span>
+                    </div>
+                </div>
+
+                <div class="topbar-center-zone">
+                    <div class="home-search-wrap">
+                        <div class="search-btn" onclick="toggleSearch()">🔍</div>
+                        <div class="search-input-wrap" id="searchWrap">
+                            <input type="text" placeholder="제목, 장르, 배우 검색..." id="searchInput" autocomplete="off">
+                            <div class="search-close-btn" onclick="closeSearch()">✕</div>
+                        </div>
+                    </div>
+                    <nav class="home-nav">
+                        <div class="nav-item active-nav" id="nav-home"      onclick="setNav('home')">홈</div>
+                        <div class="nav-item"            id="nav-series"    onclick="setNav('series')">시리즈</div>
+                        <div class="nav-item"            id="nav-movie"     onclick="setNav('movie')">영화</div>
+                        <div class="nav-item"            id="nav-mynetflix" onclick="setNav('mynetflix')">나의 넷플릭스</div>
+                    </nav>
+                </div>
+
+                <div class="topbar-right-zone">
+                    <div class="home-logo-wrap">
+                        <div class="netflix-logo-brand">NETFLIX</div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="home-menu" class="home-menu">
+                <div class="home-menu-nick">
+                    <span class="nick-emoji">🙂</span>
+                    <div>
+                        <div class="nick-text">채채</div>
+                        <div class="nick-sub">kukikuki12@naver.com</div>
+                    </div>
+                </div>
+                <div class="home-menu-item" onclick="go('support')">
+                    <span class="menu-icon">🎧</span> 고객지원
+                </div>
+                <div class="home-menu-item" onclick="showLogout()">
+                    <span class="menu-icon">🚪</span> 넷플릭스에서 나가기
+                </div>
+            </div>
+
+            <div class="movie-hero-section">
+                <div class="movie-badge">시리즈</div>
+                <h1>완전한 적</h1>
+                <div class="movie-meta">
+                    <span style="color:#2ecc71; font-weight:bold;">스릴러</span>
+                    <span>2026</span><span>에피소드 8개</span>
+                    <span style="background:#e50914; padding:2px 7px; border-radius:3px; font-size:11px; font-weight:bold;">19</span>
+                </div>
+                <div class="movie-desc">신분을 감춘 채 당당히 활보하는 천재 대도. 집요한 형사가 법의 한계를 넘나들며 끝까지 그의 정체를 밝혀내려 한다.</div>
+                <div class="cta-btns">
+                    <div class="cta-play">▶ 재생</div>
+                    <div class="cta-info" onclick="go('support')">ℹ 상세 정보</div>
+                </div>
+            </div>
+
+            <div class="content-row">
+                <div class="content-row-title">인기 콘텐츠</div>
+                <div class="thumbnail-strip">
+                    <div class="thumb"><span class="thumb-emoji">🎬</span><span class="thumb-label">오징어 게임 3</span></div>
+                    <div class="thumb"><span class="thumb-emoji">🕵️</span><span class="thumb-label">완전한 적</span></div>
+                    <div class="thumb"><span class="thumb-emoji">🌊</span><span class="thumb-label">수면 위의 밤</span></div>
+                    <div class="thumb"><span class="thumb-emoji">🧬</span><span class="thumb-label">이상한 과학자</span></div>
+                    <div class="thumb"><span class="thumb-emoji">🔪</span><span class="thumb-label">나이트런</span></div>
+                    <div class="thumb"><span class="thumb-emoji">🏆</span><span class="thumb-label">더 게임</span></div>
+                    <div class="thumb"><span class="thumb-emoji">👁</span><span class="thumb-label">다크 아이즈</span></div>
+                    <div class="thumb"><span class="thumb-emoji">🌃</span><span class="thumb-label">서울의 밤</span></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="support" class="page">
+        <div class="support-back" onclick="back()">← 뒤로 가기</div>
+        <div class="support-logo-pos"><div class="netflix-logo-brand">NETFLIX</div></div>
+        <div class="supportMenu">
+            <h1>고객 지원</h1>
+            <div class="supportMenu-list">
+                <div onclick="info('회원 정보','프로필 이름 : 채채<br><br>계정 이메일 : kukikuki12@naver.com<br><br>국가 / 언어 : KR / ko')">회원</div>
+                <div onclick="info('디바이스 사양','LG 스마트 TV 시스템 셋톱<br>모델 사양 : 넷플릭스 공식 호환 장치 인증 완료')">디바이스</div>
+                <div onclick="info('네트워크','연결된 홈 인터넷 게이트웨이 : SK_WIFI_5G')">네트워크</div>
+                <div onclick="info('멤버십 호환성','광고형 및 스탠다드, 프리미엄 멤버십 비디오 재생 규격 호환')">멤버십 호환성</div>
+                <div onclick="info('문의하기','고객센터 안내 주소<br>help.netflix.com')">문의하기</div>
+                <div onclick="speed()">네트워크 검사</div>
+                <div onclick="info('넷플릭스 재시작','시스템 캐시를 정리하고 앱을 재부팅합니다.')">넷플릭스 재시작</div>
+                <div onclick="info('넷플릭스에서 나가기','애플리케이션 환경을 종료합니다.')">넷플릭스에서 나가기</div>
+                <div onclick="showLogout()">로그아웃</div>
+            </div>
+        </div>
+        <div class="panel">
+            <h2 id="t">고객지원 안내</h2>
+            <div id="i" class="panel-content">왼쪽 메뉴 목록에서 원하시는 세부 진단 정보를 선택해 주세요.</div>
+        </div>
+    </div>
+
+    <div id="m" class="modal">
+        <div class="box">
+            <h2 style="margin-top:0;">로그아웃</h2>
+            <p style="color:#aaa; margin-bottom:24px;">정말로 넷플릭스 계정에서 로그아웃하시겠습니까?</p>
+            <div class="btn" style="background:#E50914; color:#fff;" onclick="confirmLogout()">예</div>
+            <div class="btn" onclick="document.getElementById('m').style.display='none'">아니요</div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    let h = ['login'];
+    let isUpperCase = false;
+    let currentFocus = 'email';
+
+    const homeMenu    = document.getElementById('home-menu');
+    const profileBtn  = document.getElementById('profileBtn');
+    const mModal      = document.getElementById('m');
+    const tEl         = document.getElementById('t');
+    const iEl         = document.getElementById('i');
+    const qrbox       = document.getElementById('qrbox');
+    const phonebox    = document.getElementById('phonebox');
+    const qtab        = document.getElementById('qtab');
+    const ptab        = document.getElementById('ptab');
+    const emailInput  = document.getElementById('tv-email');
+    const pwInput     = document.getElementById('tv-pw');
+    const keyboardGuide = document.getElementById('keyboard-guide');
+    const domainRow   = document.getElementById('domain-row');
+    const navBackBtn  = document.getElementById('nav-back-btn');
+    const navNextBtn  = document.getElementById('nav-next-btn');
+
+    function go(x) {
+        document.querySelectorAll('.page').forEach(e => e.classList.remove('active'));
+        document.getElementById(x).classList.add('active');
+        h.push(x);
+        homeMenu.style.display = 'none';
+        profileBtn.classList.remove('open');
+    }
+
+    function back() {
+        if (h.length > 1) {
+            h.pop();
+            const p = h[h.length - 1];
+            document.querySelectorAll('.page').forEach(e => e.classList.remove('active'));
+            document.getElementById(p).classList.add('active');
+        }
+    }
+
+    function toggleHomeMenu() {
+        const isOpen = homeMenu.style.display === 'block';
+        homeMenu.style.display = isOpen ? 'none' : 'block';
+        profileBtn.classList.toggle('open', !isOpen);
+    }
+
+    document.querySelector('.tv').addEventListener('click', function(e) {
+        if (!e.target.closest('#profileBtn') && !e.target.closest('#home-menu')) {
+            homeMenu.style.display = 'none';
+            profileBtn.classList.remove('open');
+        }
+    });
+
+    function info(a, b) { tEl.innerHTML = a; iEl.innerHTML = b; }
+    function speed() {
+        info('네트워크 검사 결과',
+            '네트워크 통신망 1 신호 정상 ✓<br>네트워크 통신망 2 수신 완료 ✓<br>네트워크 통신망 3 가속 핑 완료 ✓<br><br><strong>실시간 대역폭 속도 : '
+            + (Math.random() * 25 + 65).toFixed(1) + ' Mbps</strong>');
+    }
+    function showLogout() {
+        homeMenu.style.display = 'none';
+        profileBtn.classList.remove('open');
+        mModal.style.display = 'flex';
+    }
+    function confirmLogout() { mModal.style.display = 'none'; go('login'); }
+
+    function setNav(target) {
+        ['home','series','movie','mynetflix'].forEach(id => {
+            const el = document.getElementById('nav-' + id);
+            if (el) el.classList.toggle('active-nav', id === target);
+        });
+    }
+
+    function toggleSearch() {
+        const wrap = document.getElementById('searchWrap');
+        if (wrap.classList.contains('open')) closeSearch();
+        else { wrap.classList.add('open'); document.getElementById('searchInput').focus(); }
+    }
+    function closeSearch() {
+        document.getElementById('searchWrap').classList.remove('open');
+        document.getElementById('searchInput').value = '';
+    }
+
+    function showTab(x) {
+        qrbox.style.display    = x === 'qr'    ? 'flex' : 'none';
+        phonebox.style.display = x === 'phone' ? 'flex' : 'none';
+        
+        if(x === 'qr') {
+            qtab.className = 'active-tab';
+            ptab.className = 'inactive-tab';
+        } else {
+            ptab.className = 'active-tab';
+            qtab.className = 'inactive-tab';
+            setFocusTarget('email');
+        }
+    }
+
+    function setFocusTarget(target) {
+        currentFocus = target;
+        if (target === 'email') {
+            emailInput.style.borderColor = '#8367d7';
+            emailInput.style.background  = 'rgba(255,255,255,0.12)';
+            pwInput.style.borderColor    = 'rgba(255,255,255,0.12)';
+            pwInput.style.background     = 'rgba(255,255,255,0.06)';
+            keyboardGuide.textContent    = '이메일 주소를 입력하세요';
+            domainRow.style.display      = 'grid';
+            navBackBtn.textContent = '뒤로';
+            navNextBtn.textContent = '다음';
+        } else {
+            pwInput.style.borderColor    = '#8367d7';
+            pwInput.style.background     = 'rgba(255,255,255,0.12)';
+            emailInput.style.borderColor = 'rgba(255,255,255,0.12)';
+            emailInput.style.background  = 'rgba(255,255,255,0.06)';
+            keyboardGuide.textContent    = '비밀번호를 입력하세요';
+            domainRow.style.display      = 'none';
+            navBackBtn.textContent = '이전';
+            navNextBtn.textContent = '로그인';
+        }
+    }
+
+    function handleNavBack() {
+        if (currentFocus === 'email') showTab('qr');
+        else setFocusTarget('email');
+    }
+    function handleNavNext() {
+        if (currentFocus === 'email') setFocusTarget('password');
+        else go('home');
+    }
+
+    function pressKey(key) {
+        const el = currentFocus === 'email' ? emailInput : pwInput;
+        if (key === 'backspace') el.value = el.value.slice(0, -1);
+        else if (key.length === 1 && key.match(/[a-z]/i))
+            el.value += isUpperCase ? key.toUpperCase() : key.toLowerCase();
+        else el.value += key;
+    }
+    function toggleCase() {
+        isUpperCase = !isUpperCase;
+        document.querySelectorAll('.netflix-tv-keyboard button').forEach(btn => {
+            const t = btn.textContent;
+            if (t.length === 1 && t.match(/[a-zA-Z]/))
+                btn.textContent = isUpperCase ? t.toUpperCase() : t.toLowerCase();
+        });
+    }
+</script>
+</body>
+</html>
